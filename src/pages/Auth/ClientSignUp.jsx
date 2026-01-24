@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "../../lib/supabase";
 
 function ClientSignup() {
   const navigate = useNavigate();
@@ -14,164 +15,255 @@ function ClientSignup() {
   });
 
   const [segmentOptions, setSegmentOptions] = useState([]);
+  const [customSegment, setCustomSegment] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [emailError, setEmailError] = useState("");
 
-  // Classification options
-  const classifications = ["Departments", "Office", "Organization"];
+  const classifications = ["Office", "Department", "Organization"];
+  const inputClass =
+    "w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500";
 
-  // Segment options by classification
-  const segmentsData = {
-    Departments: [
-      "HR",
-      "Finance",
-      "IT",
-      "Marketing",
-      "Sales",
-      "Operations",
-      "Legal",
-      "R&D",
-      "Admin",
-      "Support",
-    ],
-    Office: [
-      "Manila",
-      "Cebu",
-      "Davao",
-      "Baguio",
-      "Iloilo",
-      "Cagayan",
-      "Zamboanga",
-      "Laguna",
-      "Quezon",
-      "Pampanga",
-    ],
-    Organization: [
-      "Org A",
-      "Org B",
-      "Org C",
-      "Org D",
-      "Org E",
-      "Org F",
-      "Org G",
-      "Org H",
-      "Org I",
-      "Org J",
-    ],
+  // ---------------------
+  // Validation Functions
+  // ---------------------
+  const validatePassword = (password) => {
+    const regex = /^(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
+    return regex.test(password)
+      ? ""
+      : "Password must be at least 8 characters and contain a special character.";
   };
 
+  const validateEmail = (email) => {
+    if (!email) return "Email is required.";
+    if (!email.endsWith("@gmail.com")) return "Please use a Gmail address.";
+    return "";
+  };
+
+  // ---------------------
+  // Fetch segment options from Supabase tables
+  // ---------------------
+  const fetchSegments = async (classification) => {
+    let table = "";
+    if (classification === "Organization") table = "organizations";
+    else if (classification === "Departments") table = "departments";
+    else if (classification === "Office") table = "offices";
+
+    if (!table) return setSegmentOptions([]);
+
+    const { data, error } = await supabase.from(table).select("id, name");
+    if (error) {
+      console.error(error);
+      setSegmentOptions([{ id: null, name: "Others" }]);
+    } else {
+      // Sort alphabetically by name
+      const sortedData = data.sort((a, b) => a.name.localeCompare(b.name));
+
+      setSegmentOptions([
+        ...sortedData.map((d) => ({ id: d.id, name: d.name })),
+        { id: null, name: "Others" },
+      ]);
+    }
+  };
+
+  useEffect(() => {
+    if (form.classification) fetchSegments(form.classification);
+  }, [form.classification]);
+
+  // ---------------------
+  // Handlers
+  // ---------------------
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
 
-    // Update segment options when classification changes
+    if (name === "password") setPasswordError(validatePassword(value));
+    if (name === "email") setEmailError(validateEmail(value));
     if (name === "classification") {
-      setSegmentOptions(segmentsData[value]);
-      setForm((prev) => ({ ...prev, segment: "" })); // reset segment
+      setCustomSegment("");
+      setForm((prev) => ({ ...prev, segment: "" }));
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form submitted:", form);
-    alert("Sign Up successful (mock)!");
-    navigate("/client-login"); // Redirect to login after signup
+
+    // Validate email & password
+    const emailValidation = validateEmail(form.email);
+    const passwordValidation = validatePassword(form.password);
+    if (emailValidation || passwordValidation) {
+      setEmailError(emailValidation);
+      setPasswordError(passwordValidation);
+      return;
+    }
+
+    let finalSegmentId = null;
+
+    // ---------------------
+    // Handle "Others"
+    // ---------------------
+    if (form.segment === "Others" && customSegment) {
+      let table = "";
+      if (form.classification === "Organization") table = "organizations";
+      else if (form.classification === "Department") table = "departments";
+      else if (form.classification === "Office") table = "offices";
+
+      const { data, error } = await supabase
+        .from(table)
+        .insert([{ name: customSegment }])
+        .select("id");
+      if (error) {
+        console.error("Insert new segment error:", error);
+        alert("Failed to add new segment: " + error.message);
+        return;
+      }
+      finalSegmentId = data[0].id;
+    } else {
+      // Get ID of selected segment
+      const selected = segmentOptions.find((s) => s.name === form.segment);
+      finalSegmentId = selected ? selected.id : null;
+    }
+
+    // ---------------------
+    // 1️⃣ Sign up with Supabase Auth
+    // ---------------------
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: form.email,
+      password: form.password,
+    });
+
+    if (authError) {
+      console.error("Auth sign up error:", authError.message);
+      alert("Sign Up failed: " + authError.message);
+      return;
+    }
+
+    // ---------------------
+    // 2️⃣ Insert profile linked to auth user
+    // ---------------------
+    const { data, error } = await supabase.from("profiles").insert([
+      {
+        id: authData.user.id, // link to Supabase auth user
+        first_name: form.firstName,
+        last_name: form.lastName,
+        email: form.email,
+        classification: form.classification,
+        organization_id:
+          form.classification === "Organization" ? finalSegmentId : null,
+        department_id:
+          form.classification === "Department" ? finalSegmentId : null,
+        office_id: form.classification === "Office" ? finalSegmentId : null,
+        role: "client",
+      },
+    ]);
+
+    if (error) {
+      console.error("Profile insert error:", error.message);
+      alert("Sign Up failed: " + error.message);
+      return;
+    }
+
+    alert("Sign Up successful!");
+    navigate("/client-calendar"); // Redirect after signup
   };
 
+  // ---------------------
+  // Render
+  // ---------------------
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
-        {/* HEADER */}
-        <header className="flex flex-col items-center mb-6">
-          <div className="h-12 w-12 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xl mb-2">
-            CS
-          </div>
-          <h2 className="text-2xl font-semibold text-center">Client Sign Up</h2>
-          <p className="text-center text-gray-500 mt-1">
-            Create your account to access CoreSchemas
-          </p>
-        </header>
+        <h2 className="text-2xl font-semibold text-center mb-6">
+          Client Sign Up
+        </h2>
 
-        {/* SIGNUP FORM */}
         <form className="space-y-4" onSubmit={handleSubmit}>
-          {/* First & Last Name */}
           <div className="flex gap-2">
             <input
-              type="text"
               name="firstName"
+              placeholder="First Name"
               value={form.firstName}
               onChange={handleChange}
-              placeholder="First Name"
-              className="w-1/2  rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={inputClass}
+              required
             />
             <input
-              type="text"
               name="lastName"
+              placeholder="Last Name"
               value={form.lastName}
               onChange={handleChange}
-              placeholder="Last Name"
-              className="w-1/2  rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={inputClass}
+              required
             />
           </div>
 
-          {/* Email */}
-          <div>
+          <input
+            name="email"
+            placeholder="Email (Gmail only)"
+            value={form.email}
+            onChange={handleChange}
+            className={inputClass}
+            required
+          />
+          {emailError && <p className="text-sm text-red-500">{emailError}</p>}
+
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            value={form.password}
+            onChange={handleChange}
+            className={inputClass}
+            required
+          />
+          {passwordError && (
+            <p className="text-sm text-red-500">{passwordError}</p>
+          )}
+
+          <select
+            name="classification"
+            value={form.classification}
+            onChange={handleChange}
+            className={inputClass}
+            required
+          >
+            <option value="">Classification</option>
+            {classifications.map((c) => (
+              <option key={c} value={c}>
+                {c.charAt(0).toUpperCase() + c.slice(1)}{" "}
+                {/* Capitalize for display */}
+              </option>
+            ))}
+          </select>
+
+          <select
+            name="segment"
+            value={form.segment}
+            onChange={handleChange}
+            disabled={!form.classification}
+            className={`${inputClass} disabled:bg-gray-100`}
+            required
+          >
+            <option value="">
+              {form.classification ? `Select ${form.classification}` : "Select"}
+            </option>
+            {segmentOptions.map((s) => (
+              <option key={s.id || s.name} value={s.name}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+
+          {form.segment === "Others" && (
             <input
-              type="email"
-              name="email"
-              value={form.email}
-              onChange={handleChange}
-              placeholder="Email"
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              type="text"
+              placeholder={`Enter ${form.classification} name`}
+              value={customSegment}
+              onChange={(e) => setCustomSegment(e.target.value)}
+              className={inputClass}
+              required
             />
-          </div>
+          )}
 
-          {/* Password */}
-          <div>
-            <input
-              type="password"
-              name="password"
-              value={form.password}
-              onChange={handleChange}
-              placeholder="Password"
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          {/* Classification */}
-          <div>
-            <select
-              name="classification"
-              value={form.classification}
-              onChange={handleChange}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Select Classification</option>
-              {classifications.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Segment */}
-          <div>
-            <select
-              name="segment"
-              value={form.segment}
-              onChange={handleChange}
-              disabled={!form.classification}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-            >
-              <option value="">Select Segment</option>
-              {segmentOptions.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Sign Up Button */}
           <button
             type="submit"
             disabled={
@@ -179,25 +271,28 @@ function ClientSignup() {
               !form.lastName ||
               !form.email ||
               !form.password ||
+              passwordError ||
+              emailError ||
               !form.classification ||
-              !form.segment
+              !form.segment ||
+              (form.segment === "Others" && !customSegment)
             }
             className="w-full rounded-lg bg-blue-600 py-2 text-white font-semibold hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
           >
             Sign Up
           </button>
-        </form>
 
-        {/* Back to Login */}
-        <p className="mt-4 text-center text-sm text-gray-500">
-          Already have an account?{" "}
-          <button
-            onClick={() => navigate("/client-login")}
-            className="text-blue-600 hover:underline"
-          >
-            Login
-          </button>
-        </p>
+          {/* LOGIN LINK */}
+          <p className="mt-4 text-center text-sm text-gray-500">
+            Already have an account?{" "}
+            <span
+              onClick={() => navigate("/client-login")}
+              className="text-blue-600 hover:underline cursor-pointer"
+            >
+              Login
+            </span>
+          </p>
+        </form>
       </div>
     </div>
   );

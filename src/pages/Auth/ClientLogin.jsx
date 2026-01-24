@@ -1,9 +1,26 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "../../lib/supabase";
 
 function ClientLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+
+  // ✅ Email/password login
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      alert(error.message);
+    } else {
+      navigate("/client-dashboard"); // redirect after login
+    }
+  };
 
   return (
     <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
@@ -20,12 +37,12 @@ function ClientLogin() {
             </div>
             <h2 className="text-2xl font-semibold text-center">Client Login</h2>
             <p className="text-center text-gray-500 mt-1">
-              Enter your credentials to access the system
+              Enter your credentials or login with Google
             </p>
           </header>
 
           {/* LOGIN FORM */}
-          <form className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Email
@@ -36,6 +53,7 @@ function ClientLogin() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="you@example.com"
+                required
               />
             </div>
 
@@ -49,6 +67,7 @@ function ClientLogin() {
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="••••••••"
+                required
               />
             </div>
 

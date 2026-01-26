@@ -1,0 +1,47 @@
+.fc .fc-toolbar {
+  border: 2px solid #e5e7eb; /* visible border color */
+  border-radius: 8px;         /* rounded corners */
+  padding: 10px;              /* spacing inside toolbar */
+  margin-bottom: 15px;        /* space below toolbar */
+  color: #1a1a1a;             /* text color */
+  background-color: transparent; /* no background */
+}
+.fc .fc-button {
+  background-color: #111827; /* MUI blue */
+  border: none;
+  color: white;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 8px;
+}
+
+.fc .fc-button:hover {
+  background-color: #fff176;
+}
+
+.fc .fc-button:disabled {
+  background-color: #cfd8dc;
+  color: #607d8b;
+}
+
+.fc .fc-today-button {
+  background-color: #111827;
+}
+
+.fc .fc-prev-button,
+.fc .fc-next-button {
+  background-color: #111827;
+}
+
+.fc .fc-button {
+  font-size: 1 rem;
+  height: 36px;
+}
+.fc-toolbar-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.fc {
+  font-family: "Roboto", sans-serif;
+}

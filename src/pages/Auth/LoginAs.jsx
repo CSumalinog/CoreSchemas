@@ -20,13 +20,9 @@ function LoginAs() {
   return (
     <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
       {/* LEFT SIDE */}
-      <div className="hidden md:flex items-center justify-center bg-gray-900 text-white">
+      <div className="hidden md:flex items-center justify-center bg-neutral-900 text-white">
         <div className="max-w-md text-center px-8">
           <h1 className="text-4xl font-bold mb-4">CoreSchemas</h1>
-          <p className="text-gray-300">
-            A unified content management system for internal staff and external
-            contributors.
-          </p>
         </div>
       </div>
 
@@ -35,7 +31,7 @@ function LoginAs() {
         <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
           {/* HEADER */}
           <header className="flex flex-col items-center mb-6">
-            <div className="h-12 w-12 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xl mb-2">
+            <div className="h-12 w-12 rounded-full bg-neutral-900 flex items-center justify-center text-white font-bold text-xl mb-2">
               CS
             </div>
             <h2 className="text-2xl font-semibold text-center">
@@ -63,7 +59,7 @@ function LoginAs() {
             </button>
 
             {open && (
-              <div className="absolute z-10 mt-2 w-full rounded-lg border border-gray-200 bg-white shadow">
+              <div className="absolute z-10 mt-2 w-full rounded-lg border border-neutral-100 bg-white shadow">
                 <button
                   onClick={() => handleSelect("client")}
                   className="w-full px-4 py-2 text-center hover:bg-gray-100"
@@ -84,7 +80,7 @@ function LoginAs() {
           <button
             disabled={!userType}
             onClick={handleContinue}
-            className="mt-6 w-full rounded-lg bg-blue-600 py-2 text-white font-semibold hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
+            className="mt-6 w-full rounded-lg bg-yellow-300 py-2 text-white font-semibold hover:bg-neutral-900 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
           >
             Continue
           </button>

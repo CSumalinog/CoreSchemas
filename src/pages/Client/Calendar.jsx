@@ -1,64 +1,61 @@
-// src/pages/client/ClientCalendarPage.jsx
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import ClientSidebar from "../../components/client/ClientSidebar";
-import ClientCalendar from "../../components/Calendar";
-import { supabase } from "../../lib/supabase";
+import { useState } from "react";
+import Calendar from "../../components/shared/Calendar";
+import RequestFormDialog from "../../components/client/RequestForm";
 
 export default function ClientCalendarPage() {
-  const navigate = useNavigate();
-  const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [defaultData, setDefaultData] = useState(null);
 
-  // ---------------------
-  // Fetch events
-  // ---------------------
-  useEffect(() => {
-    const fetchEvents = async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("events")
-        .select("*")
-        .order("start", { ascending: true });
+  // Triggered when user clicks a date
+  const handleDateClick = (dateStr) => {
+    setDefaultData({
+      date: dateStr, // pre-fill the selected date
+      title: "", // empty title for clients
+      personToContact: "", // optional: pre-fill if needed
+      contactInfo: "",
+    });
+    setDialogOpen(true);
+  };
 
-      if (error) {
-        console.error("Error fetching events:", error);
-      } else {
-        const mappedEvents = data.map((evt) => ({
-          id: evt.id,
-          title: evt.title,
-          start: new Date(evt.start),
-          end: new Date(evt.end),
-          allDay: evt.all_day,
-        }));
-        setEvents(mappedEvents);
-      }
-      setLoading(false);
-    };
-    fetchEvents();
-  }, []);
+  // Triggered when user clicks an event
+  const handleEventClick = (event) => {
+    setDefaultData({
+      date: event.startStr,
+      title: event.title,
+      personToContact: "", // can pre-fill depending on your logic
+      contactInfo: "",
+    });
+    setDialogOpen(true);
+  };
 
-  // ---------------------
-  // Event click handler
-  // ---------------------
-  const handleSelectEvent = (event) => navigate(`/event/${event.id}`);
+  // Close the dialog
+  const handleClose = () => {
+    setDialogOpen(false);
+    setDefaultData(null);
+  };
+
+  // Handle form submission
+  const handleFormSubmit = (formData) => {
+    console.log("Submitted Request:", formData);
+    // Here you can call your API to save the request
+    handleClose();
+  };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar */}
-      <ClientSidebar navigate={navigate} />
+    <div className="p-6 bg-gray-100 min-h-screen">
+      {/* Calendar */}
+      <Calendar
+        onDateClick={handleDateClick} // pass handlers as props
+        onEventClick={handleEventClick}
+      />
 
-      {/* Main Content */}
-      <div className="flex-1 p-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6">Client Calendar</h1>
-
-        {/* Calendar Component */}
-        <ClientCalendar
-          events={events}
-          loading={loading}
-          onSelectEvent={handleSelectEvent}
-        />
-      </div>
+      {/* Request Form Dialog */}
+      <RequestFormDialog
+        open={dialogOpen}
+        onClose={handleClose}
+        onSubmit={handleFormSubmit}
+        defaultData={defaultData} // pre-fill form dynamically
+      />
     </div>
   );
 }

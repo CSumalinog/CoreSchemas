@@ -34,7 +34,14 @@ export default function CreateRequest({ open }) {
               justifyContent: "center",
               display: "flex",
               alignItems: "center",
-              "&:hover": { backgroundColor: "#fff176", color: "#000" },
+              "&:hover": {
+                backgroundColor: "#fff",
+                color: "#1a1a1a",
+
+                "& .MuiListItemIcon-root": {
+                  color: "#000000", // ✅ icon turns black
+                },
+              },
               transition: "all 0.3s ease",
             }}
           >
@@ -52,7 +59,7 @@ export default function CreateRequest({ open }) {
                 </ListItemIcon>
                 <ListItemText
                   primary="Create Request"
-                  sx={{ color: "#fff", textAlign: "center", flexGrow: 1 }}
+                  sx={{ color: "#00000", textAlign: "center", flexGrow: 1 }}
                 />
               </>
             ) : (

@@ -16,11 +16,25 @@ import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import InboxIcon from "@mui/icons-material/MoveToInbox";
-import MailIcon from "@mui/icons-material/Mail";
+import Collapse from "@mui/material/Collapse";
+import { useNavigate } from "react-router-dom";
 
-const drawerWidth = 240;
+/* MAIN ICONS */
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import AssignmentIcon from "@mui/icons-material/Assignment";
+import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import PeopleIcon from "@mui/icons-material/People";
+import EventNoteIcon from "@mui/icons-material/EventNote";
 
+/* ACCOUNT ICONS */
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import SettingsIcon from "@mui/icons-material/Settings";
+import LogoutIcon from "@mui/icons-material/Logout";
+
+const drawerWidth = 260;
+
+/* DRAWER BEHAVIOR (UNCHANGED) */
 const openedMixin = (theme) => ({
   width: drawerWidth,
   transition: theme.transitions.create("width", {
@@ -47,97 +61,115 @@ const DrawerHeader = styled("div")(({ theme }) => ({
   alignItems: "center",
   justifyContent: "flex-end",
   padding: theme.spacing(0, 1),
-  // necessary for content to be below app bar
   ...theme.mixins.toolbar,
 }));
 
 const AppBar = styled(MuiAppBar, {
   shouldForwardProp: (prop) => prop !== "open",
-})(({ theme }) => ({
+})(({ theme, open }) => ({
   zIndex: theme.zIndex.drawer + 1,
-  transition: theme.transitions.create(["width", "margin"], {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.leavingScreen,
+  transition: theme.transitions.create(["width", "margin"]),
+  ...(open && {
+    marginLeft: drawerWidth,
+    width: `calc(100% - ${drawerWidth}px)`,
   }),
-  variants: [
-    {
-      props: ({ open }) => open,
-      style: {
-        marginLeft: drawerWidth,
-        width: `calc(100% - ${drawerWidth}px)`,
-        transition: theme.transitions.create(["width", "margin"], {
-          easing: theme.transitions.easing.sharp,
-          duration: theme.transitions.duration.enteringScreen,
-        }),
-      },
-    },
-  ],
 }));
 
 const Drawer = styled(MuiDrawer, {
   shouldForwardProp: (prop) => prop !== "open",
-})(({ theme }) => ({
+})(({ theme, open }) => ({
   width: drawerWidth,
   flexShrink: 0,
   whiteSpace: "nowrap",
   boxSizing: "border-box",
-  variants: [
-    {
-      props: ({ open }) => open,
-      style: {
-        ...openedMixin(theme),
-        "& .MuiDrawer-paper": openedMixin(theme),
-      },
-    },
-    {
-      props: ({ open }) => !open,
-      style: {
-        ...closedMixin(theme),
-        "& .MuiDrawer-paper": closedMixin(theme),
-      },
-    },
-  ],
+  ...(open && {
+    ...openedMixin(theme),
+    "& .MuiDrawer-paper": openedMixin(theme),
+  }),
+  ...(!open && {
+    ...closedMixin(theme),
+    "& .MuiDrawer-paper": closedMixin(theme),
+  }),
 }));
 
-export default function MiniDrawer() {
+export default function AdminSidebar() {
   const theme = useTheme();
-  const [open, setOpen] = React.useState(false);
+  const navigate = useNavigate();
 
-  const handleDrawerOpen = () => {
-    setOpen(true);
-  };
+  const [open, setOpen] = React.useState(true); // ✅ stays open
+  const [accountOpen, setAccountOpen] = React.useState(false);
 
-  const handleDrawerClose = () => {
-    setOpen(false);
-  };
+  /* MAIN MENU */
+  const menuItems = [
+    { text: "Dashboard", icon: <DashboardIcon />, path: "/admin-dashboard" },
+    {
+      text: "Request Management",
+      icon: <AssignmentIcon />,
+      path: "/admin-request-management",
+    },
+    {
+      text: "Assignment Management",
+      icon: <AssignmentTurnedInIcon />,
+      path: "/admin-assignment-management",
+    },
+    {
+      text: "Calendar Management",
+      icon: <CalendarMonthIcon />,
+      path: "/admin-calendar-management",
+    },
+    {
+      text: "Staffers Management",
+      icon: <PeopleIcon />,
+      path: "/admin-staffers-management",
+    },
+    {
+      text: "My Schedule",
+      icon: <EventNoteIcon />,
+      path: "/admin-my-schedule",
+    },
+  ];
 
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
-      <AppBar position="fixed" open={open}>
+
+      {/* TOP BAR */}
+      <AppBar
+        position="fixed"
+        open={open}
+        sx={{ backgroundColor: "#1a1a1a" }} // very dark gray / near black
+      >
         <Toolbar>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            onClick={handleDrawerOpen}
-            edge="start"
-            sx={[
-              {
-                marginRight: 5,
-              },
-              open && { display: "none" },
-            ]}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" noWrap component="div">
-            Mini variant drawer
+          {!open && (
+            <IconButton color="inherit" onClick={() => setOpen(true)}>
+              <MenuIcon />
+            </IconButton>
+          )}
+
+          {/* LOGO */}
+          <Box
+            component="img"
+            src="/tgp.png" // put logo in public folder
+            alt="The Gold Panicles Logo"
+            sx={{
+              width: 36,
+              height: 36,
+              ml: !open ? 1 : 0,
+              mr: 1.5,
+              objectFit: "contain",
+            }}
+          />
+
+          <Typography variant="h6" noWrap>
+            The Gold Panicles
           </Typography>
         </Toolbar>
       </AppBar>
+
+      {/* DRAWER */}
       <Drawer variant="permanent" open={open}>
         <DrawerHeader>
-          <IconButton onClick={handleDrawerClose}>
+          <IconButton onClick={() => setOpen(false)}>
             {theme.direction === "rtl" ? (
               <ChevronRightIcon />
             ) : (
@@ -145,110 +177,72 @@ export default function MiniDrawer() {
             )}
           </IconButton>
         </DrawerHeader>
+
         <Divider />
+
+        {/* MAIN MENU */}
         <List>
-          {["Inbox", "Starred", "Send email", "Drafts"].map((text, index) => (
+          {menuItems.map(({ text, icon, path }) => (
             <ListItem key={text} disablePadding sx={{ display: "block" }}>
               <ListItemButton
-                sx={[
-                  {
-                    minHeight: 48,
-                    px: 2.5,
-                  },
-                  open
-                    ? {
-                        justifyContent: "initial",
-                      }
-                    : {
-                        justifyContent: "center",
-                      },
-                ]}
+                onClick={() => navigate(path)}
+                sx={{
+                  minHeight: 48,
+                  px: 2.5,
+                  justifyContent: open ? "initial" : "center",
+                }}
               >
                 <ListItemIcon
-                  sx={[
-                    {
-                      minWidth: 0,
-                      justifyContent: "center",
-                    },
-                    open
-                      ? {
-                          mr: 3,
-                        }
-                      : {
-                          mr: "auto",
-                        },
-                  ]}
+                  sx={{
+                    minWidth: 0,
+                    mr: open ? 3 : "auto",
+                    justifyContent: "center",
+                  }}
                 >
-                  {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
+                  {icon}
                 </ListItemIcon>
-                <ListItemText
-                  primary={text}
-                  sx={[
-                    open
-                      ? {
-                          opacity: 1,
-                        }
-                      : {
-                          opacity: 0,
-                        },
-                  ]}
-                />
+                <ListItemText primary={text} sx={{ opacity: open ? 1 : 0 }} />
               </ListItemButton>
             </ListItem>
           ))}
         </List>
-        <Divider />
-        <List>
-          {["All mail", "Trash", "Spam"].map((text, index) => (
-            <ListItem key={text} disablePadding sx={{ display: "block" }}>
+
+        {/* ACCOUNT SECTION */}
+        <Box sx={{ mt: "auto" }}>
+          <Divider />
+          <ListItem disablePadding>
+            <ListItemButton onClick={() => setAccountOpen(!accountOpen)}>
+              <ListItemIcon>
+                <AccountCircleIcon />
+              </ListItemIcon>
+              <ListItemText primary="Account" sx={{ opacity: open ? 1 : 0 }} />
+            </ListItemButton>
+          </ListItem>
+
+          <Collapse in={accountOpen}>
+            <List component="div" disablePadding>
               <ListItemButton
-                sx={[
-                  {
-                    minHeight: 48,
-                    px: 2.5,
-                  },
-                  open
-                    ? {
-                        justifyContent: "initial",
-                      }
-                    : {
-                        justifyContent: "center",
-                      },
-                ]}
+                sx={{ pl: 4 }}
+                onClick={() => navigate("/admin-settings")}
               >
-                <ListItemIcon
-                  sx={[
-                    {
-                      minWidth: 0,
-                      justifyContent: "center",
-                    },
-                    open
-                      ? {
-                          mr: 3,
-                        }
-                      : {
-                          mr: "auto",
-                        },
-                  ]}
-                >
-                  {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
+                <ListItemIcon>
+                  <SettingsIcon />
                 </ListItemIcon>
-                <ListItemText
-                  primary={text}
-                  sx={[
-                    open
-                      ? {
-                          opacity: 1,
-                        }
-                      : {
-                          opacity: 0,
-                        },
-                  ]}
-                />
+                <ListItemText primary="Settings" />
               </ListItemButton>
-            </ListItem>
-          ))}
-        </List>
+
+              <ListItemButton
+                sx={{ pl: 4 }}
+                onClick={() => console.log("logout")}
+              >
+                <ListItemIcon>
+                  <LogoutIcon />
+                </ListItemIcon>
+                <ListItemText primary="Logout" />
+              </ListItemButton>
+            </List>
+          </Collapse>
+        </Box>
       </Drawer>
     </Box>
   );

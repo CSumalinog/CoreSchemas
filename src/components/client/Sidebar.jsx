@@ -28,7 +28,7 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import LogoutIcon from "@mui/icons-material/Logout";
 import CreateRequest from "./CreateRequestButton.jsx.jsx";
 
-const drawerWidth = 250;
+const drawerWidth = 260;
 
 const openedMixin = (theme) => ({
   width: drawerWidth,
@@ -108,7 +108,7 @@ const Drawer = styled(MuiDrawer, {
   ],
 }));
 
-export default function MiniDrawer() {
+export default function ClientSidebar() {
   const theme = useTheme();
   const location = useLocation();
   const [open, setOpen] = React.useState(window.innerWidth >= 768);
@@ -146,17 +146,16 @@ export default function MiniDrawer() {
           {/* Logo */}
           <Box
             component="img"
-            src="/tgp.png" // replace with your logo path
-            alt="Logo"
+            src="/tgp.png" // put logo in public folder
+            alt="The Gold Panicles Logo"
             sx={{
-              width: 40,
-              height: 40,
-              // makes it round
-              marginRight: 1.5, // spacing from title
-              objectFit: "cover",
+              width: 36,
+              height: 36,
+              ml: !open ? 1 : 0,
+              mr: 1.5,
+              objectFit: "contain",
             }}
           />
-
           <Typography variant="h6" noWrap component="div">
             The Gold Panicles
           </Typography>

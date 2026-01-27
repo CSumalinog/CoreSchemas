@@ -16,7 +16,8 @@
 }
 
 .fc .fc-button:hover {
-  background-color: #fff176;
+  background-color: #fff;
+  color: #000000;
 }
 
 .fc .fc-button:disabled {

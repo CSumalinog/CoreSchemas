@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { supabase } from "../../lib/supabase";
 
 export default function UserMenu({ collapsed }) {
@@ -18,20 +17,41 @@ export default function UserMenu({ collapsed }) {
     getUser();
   }, []);
 
+  const getInitials = (name) => {
+    if (!name) return "";
+    const parts = name.trim().split(" ");
+    const first = parts[0]?.[0] || "";
+    const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
+    return (first + last).toUpperCase();
+  };
+
   return (
     <div
-      className="flex items-center gap-2 px-3 py-2 cursor-pointer"
-      style={{ justifyContent: collapsed ? "center" : "flex-start" }}
+      className={`flex items-center gap-2 py-1 cursor-pointer ${
+        collapsed ? "justify-center" : "justify-start"
+      }`}
     >
-      <AccountCircleIcon className="text-gray-700" fontSize="medium" />
+      {/* Initials Avatar at sidebar start */}
+      <span
+        className="flex items-center justify-center rounded-full bg-yellow-400 text-black font-medium"
+        style={{
+          width: 32,
+          height: 32,
+          fontSize: 16,
+          minWidth: 32, // aligns with other icons
+        }}
+      >
+        {getInitials(userName) || "?"}
+      </span>
 
+      {/* User name text, only when drawer expanded */}
       {!collapsed && (
         <span
           style={{
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
-            maxWidth: 150, // adjust according to drawer
+            maxWidth: 150,
             display: "inline-block",
             verticalAlign: "middle",
           }}

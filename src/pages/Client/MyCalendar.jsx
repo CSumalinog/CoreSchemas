@@ -42,7 +42,7 @@ export default function ClientCalendarPage() {
   };
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-2 bg-gray-100 min-h-screen">
       {/* Calendar */}
       <Calendar
         onDateClick={handleDateClick} // pass handlers as props

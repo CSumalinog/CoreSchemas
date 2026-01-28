@@ -1,4 +1,4 @@
-import * as React from "react";
+import * as React from "react"; 
 import { styled, useTheme } from "@mui/material/styles";
 import {
   Box,
@@ -28,6 +28,9 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import SettingsIcon from "@mui/icons-material/Settings";
 import LogoutIcon from "@mui/icons-material/Logout";
+
+import UserMenu from "../shared/UserMenu.jsx";
+import { supabase } from "../../lib/supabase.js";
 
 const drawerWidth = 260;
 
@@ -84,21 +87,9 @@ export default function RegularStafferSidebar() {
   const [accountOpen, setAccountOpen] = React.useState(false);
 
   const menuItems = [
-    {
-      text: "My Coverage",
-      icon: <WorkIcon />,
-      path: "/staffer-coverage",
-    },
-    {
-      text: "My Schedule",
-      icon: <EventNoteIcon />,
-      path: "/staffer-schedule",
-    },
-    {
-      text: "My Calendar",
-      icon: <CalendarMonthIcon />,
-      path: "/staffer-calendar",
-    },
+    { text: "My Coverage", icon: <WorkIcon />, path: "/staffer-coverage" },
+    { text: "My Schedule", icon: <EventNoteIcon />, path: "/staffer-schedule" },
+    { text: "My Calendar", icon: <CalendarMonthIcon />, path: "/staffer-calendar" },
   ];
 
   return (
@@ -106,11 +97,7 @@ export default function RegularStafferSidebar() {
       <CssBaseline />
 
       {/* TOP BAR */}
-     <AppBar
-        position="fixed"
-        open={open}
-        sx={{ backgroundColor: "#1a1a1a" }} // very dark gray / near black
-      >
+      <AppBar position="fixed" open={open} sx={{ backgroundColor: "#1a1a1a" }}>
         <Toolbar>
           <IconButton
             color="inherit"
@@ -125,15 +112,9 @@ export default function RegularStafferSidebar() {
           {/* LOGO */}
           <Box
             component="img"
-            src="/tgp.png" // put logo in public folder
+            src="/tgp.png"
             alt="The Gold Panicles Logo"
-            sx={{
-              width: 50,
-              height: 50,
-              ml: !open ? 1 : 0,
-              mr: 1.5,
-              objectFit: "contain",
-            }}
+            sx={{ width: 50, height: 50, ml: !open ? 1 : 0, mr: 1.5, objectFit: "contain" }}
           />
 
           <Typography variant="h6" noWrap>
@@ -146,11 +127,7 @@ export default function RegularStafferSidebar() {
       <Drawer variant="permanent" open={open}>
         <DrawerHeader>
           <IconButton onClick={() => setOpen(false)}>
-            {theme.direction === "rtl" ? (
-              <ChevronRightIcon />
-            ) : (
-              <ChevronLeftIcon />
-            )}
+            {theme.direction === "rtl" ? <ChevronRightIcon /> : <ChevronLeftIcon />}
           </IconButton>
         </DrawerHeader>
 
@@ -162,19 +139,9 @@ export default function RegularStafferSidebar() {
             <ListItem key={text} disablePadding sx={{ display: "block" }}>
               <ListItemButton
                 onClick={() => navigate(path)}
-                sx={{
-                  minHeight: 48,
-                  px: 2.5,
-                  justifyContent: open ? "initial" : "center",
-                }}
+                sx={{ minHeight: 48, px: 2.5, justifyContent: open ? "initial" : "center" }}
               >
-                <ListItemIcon
-                  sx={{
-                    minWidth: 0,
-                    mr: open ? 3 : "auto",
-                    justifyContent: "center",
-                  }}
-                >
+                <ListItemIcon sx={{ minWidth: 0, mr: open ? 3 : "auto", justifyContent: "center" }}>
                   {icon}
                 </ListItemIcon>
                 <ListItemText primary={text} sx={{ opacity: open ? 1 : 0 }} />
@@ -183,24 +150,20 @@ export default function RegularStafferSidebar() {
           ))}
         </List>
 
-        {/* ACCOUNT (BOTTOM) */}
+        {/* ACCOUNT SECTION */}
         <Box sx={{ mt: "auto" }}>
           <Divider />
-          <ListItem disablePadding>
+
+          {/* ✅ Replaced with UserMenu */}
+          <ListItem disablePadding sx={{ display: "block" }}>
             <ListItemButton onClick={() => setAccountOpen(!accountOpen)}>
-              <ListItemIcon>
-                <AccountCircleIcon />
-              </ListItemIcon>
-              <ListItemText primary="Account" sx={{ opacity: open ? 1 : 0 }} />
+              <UserMenu collapsed={!open} />
             </ListItemButton>
           </ListItem>
 
           <Collapse in={accountOpen}>
             <List component="div" disablePadding>
-              <ListItemButton
-                sx={{ pl: 4 }}
-                onClick={() => navigate("/staffer-settings")}
-              >
+              <ListItemButton sx={{ pl: 4 }} onClick={() => navigate("/staffer-settings")}>
                 <ListItemIcon>
                   <SettingsIcon />
                 </ListItemIcon>
@@ -209,7 +172,10 @@ export default function RegularStafferSidebar() {
 
               <ListItemButton
                 sx={{ pl: 4 }}
-                onClick={() => console.log("logout")}
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  window.location.href = "/";
+                }}
               >
                 <ListItemIcon>
                   <LogoutIcon />

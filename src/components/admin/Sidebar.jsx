@@ -28,16 +28,15 @@ import PeopleIcon from "@mui/icons-material/People";
 import EventNoteIcon from "@mui/icons-material/EventNote";
 
 /* ACCOUNT ICONS */
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import SettingsIcon from "@mui/icons-material/Settings";
 import LogoutIcon from "@mui/icons-material/Logout";
 
-import useStaffer from "../../hooks/userStaffer.jsx"; // ✅ correct relative path from admin folder to hooks
+import UserMenu from "../shared/UserMenu.jsx";
 import { supabase } from "../../lib/supabase.js";
 
 const drawerWidth = 260;
 
-/* DRAWER BEHAVIOR (UNCHANGED) */
+/* DRAWER BEHAVIOR */
 const openedMixin = (theme) => ({
   width: drawerWidth,
   transition: theme.transitions.create("width", {
@@ -99,38 +98,16 @@ export default function AdminSidebar() {
   const theme = useTheme();
   const navigate = useNavigate();
 
-  const staffer = useStaffer(); // ✅ only once
-  const [open, setOpen] = React.useState(true); // stays open
-  const [userOpen, setUserOpen] = React.useState(false); // account dropdown
+  const [open, setOpen] = React.useState(true);
+  const [userOpen, setUserOpen] = React.useState(false);
 
-  /* MAIN MENU */
   const menuItems = [
     { text: "Dashboard", icon: <DashboardIcon />, path: "/admin-dashboard" },
-    {
-      text: "Request Management",
-      icon: <AssignmentIcon />,
-      path: "/admin-request-management",
-    },
-    {
-      text: "Assignment Management",
-      icon: <AssignmentTurnedInIcon />,
-      path: "/admin-assignment-management",
-    },
-    {
-      text: "Calendar Management",
-      icon: <CalendarMonthIcon />,
-      path: "/admin-calendar-management",
-    },
-    {
-      text: "Staffers Management",
-      icon: <PeopleIcon />,
-      path: "/admin-staffers-management",
-    },
-    {
-      text: "My Schedule",
-      icon: <EventNoteIcon />,
-      path: "/admin-my-schedule",
-    },
+    { text: "Request Management", icon: <AssignmentIcon />, path: "/admin-request-management" },
+    { text: "Assignment Management", icon: <AssignmentTurnedInIcon />, path: "/admin-assignment-management" },
+    { text: "Calendar Management", icon: <CalendarMonthIcon />, path: "/admin-calendar-management" },
+    { text: "Staffers Management", icon: <PeopleIcon />, path: "/admin-staffers-management" },
+    { text: "My Schedule", icon: <EventNoteIcon />, path: "/admin-my-schedule" },
   ];
 
   return (
@@ -142,7 +119,6 @@ export default function AdminSidebar() {
         <Toolbar>
           <IconButton
             color="inherit"
-            aria-label="open drawer"
             onClick={() => setOpen(true)}
             edge="start"
             sx={[{ marginRight: 2 }, open && { display: "none" }]}
@@ -154,13 +130,7 @@ export default function AdminSidebar() {
             component="img"
             src="/tgp.png"
             alt="The Gold Panicles Logo"
-            sx={{
-              width: 50,
-              height: 50,
-              ml: !open ? 1 : 0,
-              mr: 1.5,
-              objectFit: "contain",
-            }}
+            sx={{ width: 40, height: 40, mr: 1.5 }}
           />
 
           <Typography variant="h6" noWrap>
@@ -173,11 +143,7 @@ export default function AdminSidebar() {
       <Drawer variant="permanent" open={open}>
         <DrawerHeader>
           <IconButton onClick={() => setOpen(false)}>
-            {theme.direction === "rtl" ? (
-              <ChevronRightIcon />
-            ) : (
-              <ChevronLeftIcon />
-            )}
+            {theme.direction === "rtl" ? <ChevronRightIcon /> : <ChevronLeftIcon />}
           </IconButton>
         </DrawerHeader>
 
@@ -195,13 +161,7 @@ export default function AdminSidebar() {
                   justifyContent: open ? "initial" : "center",
                 }}
               >
-                <ListItemIcon
-                  sx={{
-                    minWidth: 0,
-                    mr: open ? 3 : "auto",
-                    justifyContent: "center",
-                  }}
-                >
+                <ListItemIcon sx={{ minWidth: 0, mr: open ? 3 : "auto" }}>
                   {icon}
                 </ListItemIcon>
                 <ListItemText primary={text} sx={{ opacity: open ? 1 : 0 }} />
@@ -213,33 +173,29 @@ export default function AdminSidebar() {
         {/* ACCOUNT SECTION */}
         <Box sx={{ mt: "auto" }}>
           <Divider />
+
           <ListItem disablePadding sx={{ display: "block" }}>
-            <ListItemButton onClick={() => setUserOpen(!userOpen)}>
-              <ListItemIcon>
-                <AccountCircleIcon />
-              </ListItemIcon>
-              <ListItemText
-                primary={staffer ? staffer.full_name : "Account"}
-                secondary={staffer ? staffer.email : ""}
-                sx={{ opacity: open ? 1 : 0 }}
-              />
+            <ListItemButton
+              onClick={() => setUserOpen(!userOpen)}
+              sx={{
+                minHeight: 48,
+                px: 2.5,
+                justifyContent: open ? "initial" : "center",
+              }}
+            >
+              <UserMenu collapsed={!open} />
             </ListItemButton>
           </ListItem>
 
           <Collapse in={userOpen}>
             <List component="div" disablePadding>
-              {/* Settings */}
-              <ListItemButton
-                sx={{ pl: 4 }}
-                onClick={() => navigate("/admin-settings")}
-              >
+              <ListItemButton sx={{ pl: 4 }} onClick={() => navigate("/admin-settings")}>
                 <ListItemIcon>
                   <SettingsIcon />
                 </ListItemIcon>
                 <ListItemText primary="Settings" />
               </ListItemButton>
 
-              {/* Logout */}
               <ListItemButton
                 sx={{ pl: 4 }}
                 onClick={async () => {

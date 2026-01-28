@@ -1,50 +1,53 @@
 import { useState } from "react";
 import { supabase } from "../../lib/supabase.js";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
 function StafferLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    // Query the staffers table
-    const { data, error } = await supabase
-      .from("staffers")
-      .select("*")
-      .eq("email", email)
-      .eq("password", password); // plain text match for now
+    // ✅ Auth login using Supabase
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password: password.trim(),
+    });
 
     setLoading(false);
 
-    if (error || !data || data.length === 0) {
+    if (error) {
       alert("Invalid credentials");
       return;
     }
 
-    const user = data[0];
+    // ✅ Grab role from user metadata
+    const role = data.user.user_metadata?.role;
 
-    // Redirect based on role
-    switch (user.role) {
+    switch (role) {
       case "Administrator":
         window.location.href = "/admin-dashboard";
         break;
       case "Section Head":
-        window.location.href = "/section-my-team"; // first section head page
+        window.location.href = "/section-my-team";
         break;
       case "Regular Staff":
-        window.location.href = "/staffer-coverage"; // first regular staff page
+        window.location.href = "/staffer-coverage";
         break;
       default:
-        alert("Unknown role");
+        alert("No role assigned to this account");
     }
   };
 
   return (
     <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
       <div className="hidden md:flex items-center justify-center bg-neutral-900 text-white" />
+
       <div className="flex items-center justify-center bg-gray-100">
         <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
           <header className="flex flex-col items-center mb-6">
@@ -58,34 +61,36 @@ function StafferLogin() {
           </header>
 
           <form className="space-y-4" onSubmit={handleSubmit}>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="you@example.com"
-                required
-              />
-            </div>
+            {/* Email */}
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Password
-              </label>
+            {/* Password with eye toggle */}
+            <div className="relative">
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="••••••••"
+                className="w-full rounded-lg border border-gray-300 px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
+              >
+                {showPassword ? <VisibilityOff /> : <Visibility />}
+              </button>
             </div>
 
+            {/* Submit */}
             <button
               type="submit"
               disabled={!email || !password || loading}

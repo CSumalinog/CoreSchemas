@@ -1,10 +1,9 @@
-import React from "react";
-import AdminSidebar from "../../components/admin/Sidebar";
+import Calendar from "../../components/shared/Calendar";
 export default function CalendarManagement() {
   return (
-     <div className="flex h-screen bg-gray-100">
+     
+          <Calendar />
           
-          <h2>This is Request Management</h2>
-        </div>
+     
   );
 }

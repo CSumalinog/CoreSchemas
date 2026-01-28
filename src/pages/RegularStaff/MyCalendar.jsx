@@ -1,9 +1,6 @@
+import Calendar from "../../components/shared/Calendar";
 export default function MyCalendar() {
   return (
-     <div className="flex h-screen bg-gray-100">
-          
-
-          <h2>This is My Calendar</h2>
-        </div>
+     <Calendar />
   );
 }

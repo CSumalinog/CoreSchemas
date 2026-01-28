@@ -3,7 +3,7 @@ import { supabase } from "../../lib/supabase.js";
 import { styled, useTheme } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
 import { Link, useLocation } from "react-router-dom";
-import UserMenu from "./UserMenu";
+import UserMenu from "../shared/UserMenu.jsx";
 
 import Box from "@mui/material/Box";
 import MuiDrawer from "@mui/material/Drawer";
@@ -251,6 +251,7 @@ export default function ClientSidebar() {
               ]}
             >
               <UserMenu collapsed={!open} />
+              
             </ListItemButton>
           </ListItem>
           {/* Collapsible items */}

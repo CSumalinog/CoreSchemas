@@ -31,6 +31,9 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import SettingsIcon from "@mui/icons-material/Settings";
 import LogoutIcon from "@mui/icons-material/Logout";
 
+import UserMenu from "../shared/UserMenu.jsx"; // ✅ Shared user menu
+import { supabase } from "../../lib/supabase.js";
+
 const drawerWidth = 260;
 
 /* DRAWER BEHAVIOR */
@@ -86,24 +89,10 @@ export default function SectionHeadSidebar() {
   const [accountOpen, setAccountOpen] = React.useState(false);
 
   const menuItems = [
-    { text: "My Team", 
-      icon: <GroupsIcon />, 
-      path: "/section-my-team" },
-    {
-      text: "Assignment Management",
-      icon: <AssignmentIcon />,
-      path: "/section-assignment-management",
-    },
-    {
-      text: "My Coverage",
-      icon: <VisibilityIcon />,
-      path: "/section-coverage",
-    },
-    {
-      text: "My Calendar",
-      icon: <CalendarMonthIcon />,
-      path: "/section-calendar",
-    },
+    { text: "My Team", icon: <GroupsIcon />, path: "/section-my-team" },
+    { text: "Assignment Management", icon: <AssignmentIcon />, path: "/section-assignment-management" },
+    { text: "My Coverage", icon: <VisibilityIcon />, path: "/section-coverage" },
+    { text: "My Calendar", icon: <CalendarMonthIcon />, path: "/section-calendar" },
     { text: "My Schedule", icon: <ScheduleIcon />, path: "/section-my-schedule" },
   ];
 
@@ -112,11 +101,7 @@ export default function SectionHeadSidebar() {
       <CssBaseline />
 
       {/* TOP BAR */}
-     <AppBar
-        position="fixed"
-        open={open}
-        sx={{ backgroundColor: "#1a1a1a" }} // very dark gray / near black
-      >
+      <AppBar position="fixed" open={open} sx={{ backgroundColor: "#1a1a1a" }}>
         <Toolbar>
           <IconButton
             color="inherit"
@@ -131,9 +116,8 @@ export default function SectionHeadSidebar() {
           {/* LOGO */}
           <Box
             component="img"
-            src="/tgp.png" // put logo in public folder
+            src="/tgp.png"
             alt="The Gold Panicles Logo"
-            edge="start"
             sx={{
               width: 50,
               height: 50,
@@ -153,11 +137,7 @@ export default function SectionHeadSidebar() {
       <Drawer variant="permanent" open={open}>
         <DrawerHeader>
           <IconButton onClick={() => setOpen(false)}>
-            {theme.direction === "rtl" ? (
-              <ChevronRightIcon />
-            ) : (
-              <ChevronLeftIcon />
-            )}
+            {theme.direction === "rtl" ? <ChevronRightIcon /> : <ChevronLeftIcon />}
           </IconButton>
         </DrawerHeader>
 
@@ -190,24 +170,20 @@ export default function SectionHeadSidebar() {
           ))}
         </List>
 
-        {/* ACCOUNT (BOTTOM) */}
+        {/* ACCOUNT SECTION */}
         <Box sx={{ mt: "auto" }}>
           <Divider />
-          <ListItem disablePadding>
+
+          {/* ✅ Replace hardcoded Account with UserMenu */}
+          <ListItem disablePadding sx={{ display: "block" }}>
             <ListItemButton onClick={() => setAccountOpen(!accountOpen)}>
-              <ListItemIcon>
-                <AccountCircleIcon />
-              </ListItemIcon>
-              <ListItemText primary="Account" sx={{ opacity: open ? 1 : 0 }} />
+              <UserMenu collapsed={!open} />
             </ListItemButton>
           </ListItem>
 
           <Collapse in={accountOpen}>
             <List component="div" disablePadding>
-              <ListItemButton
-                sx={{ pl: 4 }}
-                onClick={() => navigate("/section-settings")}
-              >
+              <ListItemButton sx={{ pl: 4 }} onClick={() => navigate("/section-settings")}>
                 <ListItemIcon>
                   <SettingsIcon />
                 </ListItemIcon>
@@ -216,7 +192,10 @@ export default function SectionHeadSidebar() {
 
               <ListItemButton
                 sx={{ pl: 4 }}
-                onClick={() => console.log("logout")}
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  window.location.href = "/";
+                }}
               >
                 <ListItemIcon>
                   <LogoutIcon />

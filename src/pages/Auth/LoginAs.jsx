@@ -21,8 +21,8 @@ function LoginAs() {
     <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
       {/* LEFT SIDE */}
       <div className="hidden md:flex items-center justify-center bg-neutral-900 text-white">
-        <div className="max-w-md text-center px-8">
-          <h1 className="text-4xl font-bold mb-4">CoreSchemas</h1>
+        <div className="max-w-md text-start px-8">
+          <h1 className="text-4xl font-bold mb-4 ">Welcomeback !</h1>
         </div>
       </div>
 

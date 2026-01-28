@@ -124,6 +124,8 @@ export default function ClientSidebar() {
   const navigate = useNavigate();
   const [userOpen, setUserOpen] = React.useState(false);
 
+  // 🔹 Define menu items at the top of your component
+
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
@@ -149,8 +151,8 @@ export default function ClientSidebar() {
             src="/tgp.png" // put logo in public folder
             alt="The Gold Panicles Logo"
             sx={{
-              width: 36,
-              height: 36,
+              width: 50,
+              height: 50,
               ml: !open ? 1 : 0,
               mr: 1.5,
               objectFit: "contain",
@@ -174,6 +176,7 @@ export default function ClientSidebar() {
         </DrawerHeader>
 
         <Divider />
+
         <List>
           <CreateRequest open={open} />
 

@@ -1,5 +1,4 @@
-
-export default function Settings() {
+export default function MyCoverage() {
   return (
      <div className="flex h-screen bg-gray-100">
           

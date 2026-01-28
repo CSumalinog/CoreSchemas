@@ -32,6 +32,9 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import SettingsIcon from "@mui/icons-material/Settings";
 import LogoutIcon from "@mui/icons-material/Logout";
 
+import useStaffer from "../../hooks/userStaffer.jsx"; // ✅ correct relative path from admin folder to hooks
+import { supabase } from "../../lib/supabase.js";
+
 const drawerWidth = 260;
 
 /* DRAWER BEHAVIOR (UNCHANGED) */
@@ -96,8 +99,9 @@ export default function AdminSidebar() {
   const theme = useTheme();
   const navigate = useNavigate();
 
-  const [open, setOpen] = React.useState(true); // ✅ stays open
-  const [accountOpen, setAccountOpen] = React.useState(false);
+  const staffer = useStaffer(); // ✅ only once
+  const [open, setOpen] = React.useState(true); // stays open
+  const [userOpen, setUserOpen] = React.useState(false); // account dropdown
 
   /* MAIN MENU */
   const menuItems = [
@@ -134,26 +138,25 @@ export default function AdminSidebar() {
       <CssBaseline />
 
       {/* TOP BAR */}
-      <AppBar
-        position="fixed"
-        open={open}
-        sx={{ backgroundColor: "#1a1a1a" }} // very dark gray / near black
-      >
+      <AppBar position="fixed" open={open} sx={{ backgroundColor: "#1a1a1a" }}>
         <Toolbar>
-          {!open && (
-            <IconButton color="inherit" onClick={() => setOpen(true)}>
-              <MenuIcon />
-            </IconButton>
-          )}
+          <IconButton
+            color="inherit"
+            aria-label="open drawer"
+            onClick={() => setOpen(true)}
+            edge="start"
+            sx={[{ marginRight: 2 }, open && { display: "none" }]}
+          >
+            <MenuIcon />
+          </IconButton>
 
-          {/* LOGO */}
           <Box
             component="img"
-            src="/tgp.png" // put logo in public folder
+            src="/tgp.png"
             alt="The Gold Panicles Logo"
             sx={{
-              width: 36,
-              height: 36,
+              width: 50,
+              height: 50,
               ml: !open ? 1 : 0,
               mr: 1.5,
               objectFit: "contain",
@@ -210,17 +213,22 @@ export default function AdminSidebar() {
         {/* ACCOUNT SECTION */}
         <Box sx={{ mt: "auto" }}>
           <Divider />
-          <ListItem disablePadding>
-            <ListItemButton onClick={() => setAccountOpen(!accountOpen)}>
+          <ListItem disablePadding sx={{ display: "block" }}>
+            <ListItemButton onClick={() => setUserOpen(!userOpen)}>
               <ListItemIcon>
                 <AccountCircleIcon />
               </ListItemIcon>
-              <ListItemText primary="Account" sx={{ opacity: open ? 1 : 0 }} />
+              <ListItemText
+                primary={staffer ? staffer.full_name : "Account"}
+                secondary={staffer ? staffer.email : ""}
+                sx={{ opacity: open ? 1 : 0 }}
+              />
             </ListItemButton>
           </ListItem>
 
-          <Collapse in={accountOpen}>
+          <Collapse in={userOpen}>
             <List component="div" disablePadding>
+              {/* Settings */}
               <ListItemButton
                 sx={{ pl: 4 }}
                 onClick={() => navigate("/admin-settings")}
@@ -231,9 +239,13 @@ export default function AdminSidebar() {
                 <ListItemText primary="Settings" />
               </ListItemButton>
 
+              {/* Logout */}
               <ListItemButton
                 sx={{ pl: 4 }}
-                onClick={() => console.log("logout")}
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  window.location.href = "/";
+                }}
               >
                 <ListItemIcon>
                   <LogoutIcon />
